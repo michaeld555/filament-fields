@@ -25,7 +25,7 @@ class CepInput extends TextInput
 
             if (!is_null($citiesTable) && !is_null($ibgeColumn) && !blank($request) && !Arr::has($request, 'erro')) {
 
-                $city = DB::table($citiesTable)->where('ibge_code', $ibgeColumn)->first();
+                $city = DB::table($citiesTable)->where($ibgeColumn, $request['ibge'])->first();
 
                 $request['city_id'] = $city->id;
 

@@ -21,60 +21,29 @@ class CepInput extends TextInput
 
             $livewire->validateOnly($component->getKey());
 
-            try {
+            $request = Http::get("viacep.com.br/ws/$state/json/")->json();
 
-                $request = Http::get("viacep.com.br/ws/$state/json/")->json();
+            if (!is_null($citiesTable) && !is_null($ibgeColumn) && !blank($request) && !Arr::has($request, 'erro')) {
 
-                if (!is_null($citiesTable) && !is_null($ibgeColumn) && !blank($request) && !Arr::has($request, 'erro')) {
+                $city = DB::table($citiesTable)->where($ibgeColumn, $request['ibge'])->first();
 
-                    $city = DB::table($citiesTable)->where($ibgeColumn, $request['ibge'])->first();
+                $request['city_id'] = $city->id;
 
-                    $request['city_id'] = $city->id;
-
-                    $request['state_id'] = $city->state_id;
-
-                }
-
-                foreach ($setFields as $key => $value) {
-
-                    $set($key, $request[$value] ?? null);
-
-                }
-
-                if (blank($request) || Arr::has($request, 'erro')) {
-                    throw ValidationException::withMessages([
-                        $component->getKey() => $errorMessage,
-                    ]);
-                }
-
-            } catch(\Exception $e) {
-
-                $request = Http::get("https://opencep.com/v1/$state.json")->json();
-
-                if (!is_null($citiesTable) && !is_null($ibgeColumn) && !blank($request) && !Arr::has($request, 'erro')) {
-
-                    $city = DB::table($citiesTable)->where($ibgeColumn, $request['ibge'])->first();
-
-                    $request['city_id'] = $city->id;
-
-                    $request['state_id'] = $city->state_id;
-
-                }
-
-                foreach ($setFields as $key => $value) {
-
-                    $set($key, $request[$value] ?? null);
-
-                }
-
-                if (blank($request) || Arr::has($request, 'erro')) {
-                    throw ValidationException::withMessages([
-                        $component->getKey() => $errorMessage,
-                    ]);
-                }
+                $request['state_id'] = $city->state_id;
 
             }
 
+            foreach ($setFields as $key => $value) {
+
+                $set($key, $request[$value] ?? null);
+
+            }
+
+            if (blank($request) || Arr::has($request, 'erro')) {
+                throw ValidationException::withMessages([
+                    $component->getKey() => $errorMessage,
+                ]);
+            }
         };
 
         $this->minLength(9)
